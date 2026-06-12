@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Class of 2012 — Directory</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #f5f4f0;
+    color: #1a1a18;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: #1a1a18;
+    color: #f5f4f0;
+    padding: 2.5rem 2rem 2rem;
+    text-align: center;
+  }
+  .year-badge {
+    display: inline-block;
+    background: #d4a843;
+    color: #1a1a18;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+  }
+  header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.4rem; }
+  header p  { font-size: 0.95rem; color: #888; }
+
+  /* ── SEARCH ── */
+  .search-bar {
+    max-width: 700px;
+    margin: 2rem auto 1rem;
+    padding: 0 1.5rem;
+  }
+  .search-bar input {
+    width: 100%;
+    padding: 0.75rem 1.1rem;
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-bar input:focus { border-color: #d4a843; }
+
+  .count {
+    max-width: 900px;
+    margin: 0 auto 0.75rem;
+    padding: 0 1.5rem;
+    font-size: 0.82rem;
+    color: #999;
+  }
+
+  /* ── GRID ── */
+  .grid {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1.5rem 6rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.1rem;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e8e6e0;
+    overflow: hidden;
+  }
+
+  /* photo carousel */
+  .photo-wrap {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    background: #e8e3d5;
+    overflow: hidden;
+  }
+  .photo-wrap .slides {
+    display: flex;
+    height: 100%;
+    transition: transform 0.3s ease;
+  }
+  .photo-wrap .slide {
+    min-width: 100%;
+    height: 100%;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .photo-wrap .slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .photo-wrap .initials-ph {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #9a8560;
+  }
+  .year-tag {
+    position: absolute;
+    bottom: 7px;
+    left: 8px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    pointer-events: none;
+  }
+  .nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.38);
+    color: #fff;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: background 0.15s;
+  }
+  .nav-btn:hover { background: rgba(0,0,0,0.6); }
+  .nav-btn.prev { left: 6px; }
+  .nav-btn.next { right: 6px; }
+  .dot-row {
+    position: absolute;
+    bottom: 7px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+  }
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    transition: background 0.2s;
+  }
+  .dot.active { background: #fff; }
+
+  /* card body */
+  .card-top {
+    padding: 0.85rem 1rem 0.75rem;
+    text-align: center;
+  }
+  .card-name {
+    font-size: 0.97rem;
+    font-weight: 700;
+    color: #1a1a18;
+    line-height: 1.3;
+  }
+
+  /* more toggle */
+  .more-btn {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-top: 1px solid #f0ede6;
+    background: #faf9f6;
+    font-size: 0.8rem;
+    color: #888;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: background 0.15s;
+  }
+  .more-btn:hover { background: #f0ede6; color: #555; }
+  .arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
+  .more-btn.open .arrow { transform: rotate(180deg); }
+
+  .card-details {
+    display: none;
+    padding: 0.85rem 1.1rem 1rem;
+    border-top: 1px solid #f0ede6;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .card-details.open { display: flex; }
+
+  .detail-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 0.82rem;
+  }
+  .detail-label { color: #aaa; min-width: 68px; flex-shrink: 0; }
+  .detail-value { color: #1a1a18; font-weight: 500; }
+  .no-details { font-size: 0.8rem; color: #bbb; font-style: italic; text-align: center; }
+
+  .empty {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #999;
+    font-size: 0.95rem;
+  }
+
+  /* ── LOADING ── */
+  .loading {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #bbb;
+    font-size: 0.9rem;
+  }
+
+  /* ── ADMIN BUTTON ── */
+  .admin-toggle {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: #d4a843;
+    color: #1a1a18;
+    border: none;
+    border-radius: 50px;
+    padding: 0.75rem 1.4rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    z-index: 50;
+  }
+
+  /* ── MODAL (shared) ── */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 440px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1.75rem;
+  }
+  .modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; }
+  .modal label { font-size: 0.8rem; color: #888; display: block; margin-bottom: 4px; margin-top: 12px; }
+  .modal input[type=text],
+  .modal input[type=password] {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    outline: none;
+    background: #fafaf8;
+    transition: border-color 0.2s;
+  }
+  .modal input:focus { border-color: #d4a843; }
+
+  .modal .btn-primary {
+    width: 100%;
+    margin-top: 1.25rem;
+    padding: 0.7rem;
+    background: #1a1a18;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .modal .btn-secondary {
+    width: 100%;
+    margin-top: 0.6rem;
+    padding: 0.65rem;
+    background: transparent;
+    color: #888;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .modal .error-msg { color: #c0392b; font-size: 0.82rem; margin-top: 8px; display: none; }
+  .modal .error-msg.show { display: block; }
+
+  /* photo upload list inside admin modal */
+  .photo-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+  .photo-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: #faf9f6;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 8px 10px;
+  }
+  .photo-item img {
+    width: 44px; height: 44px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #e8e6e0;
+    flex-shrink: 0;
+  }
+  .photo-item .ph-initials {
+    width: 44px; height: 44px;
+    border-radius: 8px;
+    background: #e8e3d5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #9a8560;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .photo-item input {
+    flex: 1;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    outline: none;
+    background: #fff;
+  }
+  .photo-item input:focus { border-color: #d4a843; }
+  .photo-item .rm-btn {
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0 4px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .photo-item .rm-btn:hover { color: #e74c3c; }
+  .add-photo-btn {
+    margin-top: 6px;
+    padding: 0.45rem 0.9rem;
+    background: transparent;
+    border: 1.5px dashed #ccc;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: #888;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+  }
+  .add-photo-btn:hover { border-color: #d4a843; color: #d4a843; }
+
+  /* uploading spinner */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid #ccc;
+    border-top-color: #1a1a18;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* edit/delete on card — admin only */
+  .card-actions {
+    display: none;
+    gap: 6px;
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid #f0ede6;
+    background: #faf9f6;
+  }
+  .card-actions.admin-visible { display: flex; }
+  .card-actions button {
+    flex: 1;
+    padding: 0.4rem;
+    border-radius: 7px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #555;
+    transition: all 0.15s;
+  }
+  .card-actions .del-btn { color: #c0392b; border-color: #f5c6c6; }
+  .card-actions .del-btn:hover { background: #fdf0f0; }
+  .card-actions .edit-btn:hover { background: #f0ede6; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="year-badge">Class of 2012</div>
+  <h1>Our Class Directory</h1>
+  <p>Find and reconnect with your classmates</p>
+</header>
+
+<div class="search-bar">
+  <input type="text" id="searchInput" placeholder="Search by name or location…" oninput="renderCards()" />
+</div>
+<div class="count" id="countLabel"></div>
+<div class="grid" id="grid"><div class="loading">Loading members…</div></div>
+
+<!-- Admin toggle -->
+<button class="admin-toggle" id="adminToggleBtn" onclick="handleAdminToggle()">Admin</button>
+
+<!-- ── PASSWORD MODAL ── -->
+<div class="overlay" id="passwordOverlay">
+  <div class="modal">
+    <h2>Admin Login</h2>
+    <label>Password</label>
+    <input type="password" id="pwInput" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')checkPassword()" />
+    <div class="error-msg" id="pwError">Incorrect password. Try again.</div>
+    <button class="btn-primary" onclick="checkPassword()">Log in</button>
+    <button class="btn-secondary" onclick="closeOverlay('passwordOverlay')">Cancel</button>
+  </div>
+</div>
+
+<!-- ── ADD / EDIT MEMBER MODAL ── -->
+<div class="overlay" id="memberOverlay">
+  <div class="modal">
+    <h2 id="memberModalTitle">Add a classmate</h2>
+
+    <label>Full name *</label>
+    <input type="text" id="fName" placeholder="e.g. Amaka Okafor" />
+
+    <label>Occupation</label>
+    <input type="text" id="fOccupation" placeholder="e.g. Nurse" />
+
+    <label>Location</label>
+    <input type="text" id="fLocation" placeholder="e.g. Abuja" />
+
+    <label>Birthday (day and month only)</label>
+    <input type="text" id="fBirthday" placeholder="e.g. June 3" />
+
+    <label>Photos <span style="color:#bbb;font-size:0.75rem;">(optional — upload one or more)</span></label>
+    <div class="photo-list" id="photoList"></div>
+    <button class="add-photo-btn" onclick="addPhotoRow()">+ Add another photo</button>
+
+    <div class="error-msg" id="memberError"></div>
+    <button class="btn-primary" id="memberSaveBtn" onclick="saveMember()">Save</button>
+    <button class="btn-secondary" onclick="closeOverlay('memberOverlay')">Cancel</button>
+  </div>
+</div>
+
+<!-- ── DELETE CONFIRM MODAL ── -->
+<div class="overlay" id="deleteOverlay">
+  <div class="modal">
+    <h2>Remove classmate?</h2>
+    <p style="font-size:0.9rem;color:#666;margin-bottom:1rem;">This will permanently delete <strong id="deleteName"></strong> and all their photos.</p>
+    <button class="btn-primary" style="background:#c0392b;" onclick="confirmDelete()">Yes, remove</button>
+    <button class="btn-secondary" onclick="closeOverlay('deleteOverlay')">Cancel</button>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIG — fill these in after Supabase setup
+// ─────────────────────────────────────────────
+const SUPABASE_URL    = 'https://tisruxnlwckajsepzrvb.supabase.co/rest/v1/';
+const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpc3J1eG5sd2NrYWpzZXB6cnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTk2OTcsImV4cCI6MjA5Njc5NTY5N30.Z9B6OMi-1PbHa7YPhWOdKr7h2I-2xvzZLFgDmC6CkCg';
+const ADMIN_PASSWORD  = '47308464Gb!';
+const STORAGE_BUCKET  = 'photos';
+// ─────────────────────────────────────────────
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let members   = [];
+let isAdmin   = false;
+let editingId = null;
+let deleteId  = null;
+let photoRows = []; // { file, previewUrl, year }
+
+// ── INIT ──
+async function init() {
+  await loadMembers();
+}
+
+async function loadMembers() {
+  document.getElementById('grid').innerHTML = '<div class="loading">Loading members…</div>';
+  const { data, error } = await sb
+    .from('members')
+    .select('*, photos(*)')
+    .order('name');
+  if (error) {
+    document.getElementById('grid').innerHTML = '<div class="empty">Could not load members. Check your Supabase config.</div>';
+    return;
+  }
+  members = data || [];
+  renderCards();
+}
+
+// ── RENDER ──
+function initials(name) {
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function renderCards() {
+  const q   = document.getElementById('searchInput').value.toLowerCase().trim();
+  const grid = document.getElementById('grid');
+
+  const filtered = members.filter(m => {
+    if (!q) return true;
+    return m.name.toLowerCase().includes(q) ||
+           (m.location || '').toLowerCase().includes(q);
+  });
+
+  document.getElementById('countLabel').textContent =
+    `${filtered.length} member${filtered.length !== 1 ? 's' : ''}`;
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty">No classmates found.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(m => cardHTML(m)).join('');
+}
+
+function cardHTML(m) {
+  const photos  = (m.photos || []).sort((a,b)=> (a.sort_order||0)-(b.sort_order||0));
+  const hasPhoto = photos.length > 0;
+
+  // photo carousel or initials
+  let photoSection = '';
+  if (!hasPhoto) {
+    photoSection = `
+      <div class="photo-wrap">
+        <div class="initials-ph">${initials(m.name)}</div>
+      </div>`;
+  } else if (photos.length === 1) {
+    const p = photos[0];
+    photoSection = `
+      <div class="photo-wrap">
+        <div class="slides">
+          <div class="slide">
+            <img src="${p.url}" alt="${m.name}" onerror="this.parentElement.innerHTML='<div class=initials-ph>${initials(m.name)}</div>'" />
+            ${p.year ? `<span class="year-tag">${p.year}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+  } else {
+    const dots = photos.map((_,i) => `<div class="dot${i===0?' active':''}" id="dot-${m.id}-${i}"></div>`).join('');
+    const slides = photos.map(p => `
+      <div class="slide">
+        <img src="${p.url}" alt="${m.name}" onerror="this.parentElement.innerHTML='<div class=initials-ph>${initials(m.name)}</div>'" />
+        ${p.year ? `<span class="year-tag">${p.year}</span>` : ''}
+      </div>`).join('');
+    photoSection = `
+      <div class="photo-wrap" id="pw-${m.id}">
+        <div class="slides" id="slides-${m.id}">${slides}</div>
+        <button class="nav-btn prev" onclick="slidePhoto(event,'${m.id}',-1)">&#8249;</button>
+        <button class="nav-btn next" onclick="slidePhoto(event,'${m.id}',1)">&#8250;</button>
+        <div class="dot-row">${dots}</div>
+      </div>`;
+  }
+
+  // details
+  const hasDetails = m.occupation || m.location || m.birthday;
+  const detailRows = [
+    m.occupation && `<div class="detail-row"><span class="detail-label">Job</span><span class="detail-value">${m.occupation}</span></div>`,
+    m.location   && `<div class="detail-row"><span class="detail-label">Location</span><span class="detail-value">${m.location}</span></div>`,
+    m.birthday   && `<div class="detail-row"><span class="detail-label">Birthday</span><span class="detail-value">${m.birthday}</span></div>`,
+  ].filter(Boolean).join('');
+
+  const adminActions = isAdmin ? `
+    <div class="card-actions admin-visible">
+      <button class="edit-btn" onclick="openEdit('${m.id}')">Edit</button>
+      <button class="del-btn"  onclick="openDelete('${m.id}','${m.name.replace(/'/g,"\\'")}')">Remove</button>
+    </div>` : '';
+
+  return `
+    <div class="card" id="card-${m.id}">
+      ${photoSection}
+      <div class="card-top">
+        <div class="card-name">${m.name}</div>
+      </div>
+      <button class="more-btn" id="btn-${m.id}" onclick="toggleMore('${m.id}')">
+        More <span class="arrow">▼</span>
+      </button>
+      <div class="card-details" id="details-${m.id}">
+        ${hasDetails ? detailRows : '<div class="no-details">No details added yet</div>'}
+      </div>
+      ${adminActions}
+    </div>`;
+}
+
+// ── CAROUSEL ──
+const slideIndex = {};
+function slidePhoto(e, id, dir) {
+  e.stopPropagation();
+  const m = members.find(x => x.id == id);
+  if (!m) return;
+  const photos = (m.photos || []).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+  if (!slideIndex[id]) slideIndex[id] = 0;
+  slideIndex[id] = (slideIndex[id] + dir + photos.length) % photos.length;
+  const idx = slideIndex[id];
+  document.getElementById('slides-' + id).style.transform = `translateX(-${idx * 100}%)`;
+  photos.forEach((_,i) => {
+    const d = document.getElementById(`dot-${id}-${i}`);
+    if (d) d.classList.toggle('active', i === idx);
+  });
+}
+
+// ── MORE TOGGLE ──
+function toggleMore(id) {
+  const details = document.getElementById('details-' + id);
+  const btn     = document.getElementById('btn-' + id);
+  const isOpen  = details.classList.contains('open');
+  details.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+}
+
+// ── ADMIN ──
+function handleAdminToggle() {
+  if (isAdmin) {
+    isAdmin = false;
+    document.getElementById('adminToggleBtn').textContent = 'Admin';
+    renderCards();
+  } else {
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwError').classList.remove('show');
+    openOverlay('passwordOverlay');
+  }
+}
+
+function checkPassword() {
+  if (document.getElementById('pwInput').value === ADMIN_PASSWORD) {
+    isAdmin = true;
+    closeOverlay('passwordOverlay');
+    document.getElementById('adminToggleBtn').textContent = '✓ Admin — Add Member';
+    renderCards();
+  } else {
+    document.getElementById('pwError').classList.add('show');
+  }
+}
+
+// ── ADD / EDIT ──
+function openAdd() {
+  editingId = null;
+  document.getElementById('memberModalTitle').textContent = 'Add a classmate';
+  ['fName','fOccupation','fLocation','fBirthday'].forEach(id => document.getElementById(id).value = '');
+  photoRows = [{ file: null, previewUrl: null, year: '' }];
+  renderPhotoRows('');
+  document.getElementById('memberError').classList.remove('show');
+  document.getElementById('memberSaveBtn').textContent = 'Save';
+  openOverlay('memberOverlay');
+}
+
+function openEdit(id) {
+  const m = members.find(x => x.id == id);
+  if (!m) return;
+  editingId = id;
+  document.getElementById('memberModalTitle').textContent = 'Edit classmate';
+  document.getElementById('fName').value       = m.name || '';
+  document.getElementById('fOccupation').value = m.occupation || '';
+  document.getElementById('fLocation').value   = m.location || '';
+  document.getElementById('fBirthday').value   = m.birthday || '';
+  const photos = (m.photos || []).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+  photoRows = photos.length
+    ? photos.map(p => ({ file: null, previewUrl: p.url, year: p.year || '', dbId: p.id, dbUrl: p.url }))
+    : [{ file: null, previewUrl: null, year: '' }];
+  renderPhotoRows(initials(m.name));
+  document.getElementById('memberError').classList.remove('show');
+  document.getElementById('memberSaveBtn').textContent = 'Update';
+  openOverlay('memberOverlay');
+}
+
+function addPhotoRow() {
+  photoRows.push({ file: null, previewUrl: null, year: '' });
+  renderPhotoRows(document.getElementById('fName').value.trim() || '?');
+}
+
+function removePhotoRow(i) {
+  photoRows.splice(i, 1);
+  if (!photoRows.length) photoRows = [{ file: null, previewUrl: null, year: '' }];
+  renderPhotoRows(document.getElementById('fName').value.trim() || '?');
+}
+
+function renderPhotoRows(nameInit) {
+  const list = document.getElementById('photoList');
+  list.innerHTML = photoRows.map((row, i) => `
+    <div class="photo-item">
+      ${row.previewUrl
+        ? `<img src="${row.previewUrl}" alt="photo" />`
+        : `<div class="ph-initials">${nameInit.slice(0,2).toUpperCase() || '?'}</div>`}
+      <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+        <input type="file" accept="image/*" style="font-size:0.75rem;border:none;padding:0;background:transparent;"
+          onchange="handleFileChange(event,${i})" />
+        <input type="text" placeholder="Year label (optional, e.g. 2012)"
+          value="${row.year}"
+          onchange="photoRows[${i}].year=this.value" />
+      </div>
+      <button class="rm-btn" onclick="removePhotoRow(${i})">×</button>
+    </div>`).join('');
+}
+
+function handleFileChange(event, i) {
+  const file = event.target.files[0];
+  if (!file) return;
+  photoRows[i].file = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    photoRows[i].previewUrl = e.target.result;
+    renderPhotoRows(document.getElementById('fName').value.trim() || '?');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveMember() {
+  const name = document.getElementById('fName').value.trim();
+  if (!name) {
+    showMemberError('Please enter at least a name.');
+    return;
+  }
+
+  const btn = document.getElementById('memberSaveBtn');
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+  btn.disabled = true;
+
+  const payload = {
+    name,
+    occupation: document.getElementById('fOccupation').value.trim() || null,
+    location:   document.getElementById('fLocation').value.trim() || null,
+    birthday:   document.getElementById('fBirthday').value.trim() || null,
+  };
+
+  let memberId = editingId;
+
+  if (editingId) {
+    const { error } = await sb.from('members').update(payload).eq('id', editingId);
+    if (error) { showMemberError('Error updating: ' + error.message); resetSaveBtn(); return; }
+  } else {
+    const { data, error } = await sb.from('members').insert(payload).select().single();
+    if (error) { showMemberError('Error saving: ' + error.message); resetSaveBtn(); return; }
+    memberId = data.id;
+  }
+
+  // delete old photos if editing
+  if (editingId) {
+    const existing = (members.find(m => m.id == editingId)?.photos || []);
+    const keepIds  = photoRows.filter(r => r.dbId).map(r => r.dbId);
+    const toDelete = existing.filter(p => !keepIds.includes(p.id));
+    for (const p of toDelete) {
+      await sb.from('photos').delete().eq('id', p.id);
+    }
+  }
+
+  // upload new photos
+  for (let i = 0; i < photoRows.length; i++) {
+    const row = photoRows[i];
+    if (!row.file && !row.dbUrl) continue;
+    if (row.dbId) {
+      // just update year label if changed
+      await sb.from('photos').update({ year: row.year || null }).eq('id', row.dbId);
+      continue;
+    }
+    if (!row.file) continue;
+    const ext      = row.file.name.split('.').pop();
+    const path     = `${memberId}/${Date.now()}_${i}.${ext}`;
+    const { error: upErr } = await sb.storage.from(STORAGE_BUCKET).upload(path, row.file, { upsert: true });
+    if (upErr) { showMemberError('Photo upload failed: ' + upErr.message); continue; }
+    const { data: urlData } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+    await sb.from('photos').insert({
+      member_id:  memberId,
+      url:        urlData.publicUrl,
+      year:       row.year || null,
+      sort_order: i,
+    });
+  }
+
+  closeOverlay('memberOverlay');
+  resetSaveBtn();
+  await loadMembers();
+}
+
+function showMemberError(msg) {
+  const el = document.getElementById('memberError');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function resetSaveBtn() {
+  const btn = document.getElementById('memberSaveBtn');
+  btn.innerHTML = editingId ? 'Update' : 'Save';
+  btn.disabled  = false;
+}
+
+// ── DELETE ──
+function openDelete(id, name) {
+  deleteId = id;
+  document.getElementById('deleteName').textContent = name;
+  openOverlay('deleteOverlay');
+}
+
+async function confirmDelete() {
+  if (!deleteId) return;
+  const m = members.find(x => x.id == deleteId);
+  if (m?.photos) {
+    for (const p of m.photos) await sb.from('photos').delete().eq('id', p.id);
+  }
+  await sb.from('members').delete().eq('id', deleteId);
+  deleteId = null;
+  closeOverlay('deleteOverlay');
+  await loadMembers();
+}
+
+// ── OVERLAY HELPERS ──
+function openOverlay(id)  { document.getElementById(id).classList.add('open'); }
+function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ── Admin button changes to Add Member when logged in ──
+document.getElementById('adminToggleBtn').addEventListener('click', () => {
+  if (isAdmin) openAdd();
+});
+
+// override the onclick to handle both states
+document.getElementById('adminToggleBtn').onclick = () => {
+  if (isAdmin) { openAdd(); }
+  else { handleAdminToggle(); }
+};
+
+init();
+</script>
+</body>
+</html>
